@@ -734,8 +734,6 @@ async function play(guild, textChannel) {
       const proc = spawn('python',['-m','yt_dlp',
         '-f','bestaudio/best',
         '-o','-',
-        '--quiet',
-        '--no-warnings',
         '--cookies',require('path').join(__dirname,'cookies.txt'),
         song.url
       ]);

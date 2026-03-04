@@ -730,7 +730,7 @@ async function play(guild, textChannel) {
       resource = createAudioResource(scStream.stream, { inputType:scStream.type, inlineVolume:true });
     } else {
       const proc = spawn('python',['-m','yt_dlp','-f','bestaudio/best','-o','-','--quiet',
-        '--extractor-args','youtube:player_client=android','--no-cookies',song.url]);
+        '--extractor-args','youtube:player_client=tv_embedded,ios','--cookies',path.join(__dirname,'cookies.txt'),song.url]);
       proc.stderr.on('data',d=>{ const m=d.toString(); if(!m.includes('Broken pipe')&&!m.includes('Invalid argument')) console.error('yt-dlp:',m.trim()); });
       q.currentProcess=proc;
       resource = createAudioResource(proc.stdout, { inputType:'arbitrary', inlineVolume:true });

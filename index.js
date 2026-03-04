@@ -734,14 +734,13 @@ async function play(guild, textChannel) {
       const proc = spawn('python',['-m','yt_dlp',
         '-f','bestaudio/best',
         '-o','-',
-        '--cookies',require('path').join(__dirname,'cookies.txt'),
+        '--extractor-args','youtube:player_client=ios',
         song.url
       ]);
       proc.stderr.on('data',d=>{ const m=d.toString(); if(!m.includes('Broken pipe')&&!m.includes('Invalid argument')) console.error('yt-dlp:',m.trim()); });
       q.currentProcess=proc;
       resource = createAudioResource(proc.stdout, { inputType:'arbitrary', inlineVolume:true });
     }
-    resource.volume?.setVolume(((q.volume||100)/100)*2);
     q.resource=resource;
     q.player.removeAllListeners(AudioPlayerStatus.Idle);
     q.player.removeAllListeners(AudioPlayerStatus.Playing);

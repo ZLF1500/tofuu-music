@@ -730,10 +730,15 @@ async function play(guild, textChannel) {
       resource = createAudioResource(scStream.stream, { inputType:scStream.type, inlineVolume:true });
     } else {
       try {
-        const ytStream = await playdl.stream(song.url, { quality: 2 });
+        // Normalize URL to standard YouTube watch URL
+        let streamUrl = song.url;
+        const vidId = streamUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+        if (vidId) streamUrl = `https://www.youtube.com/watch?v=${vidId}`;
+        console.log('Streaming URL:', streamUrl);
+        const ytStream = await playdl.stream(streamUrl, { quality: 2 });
         resource = createAudioResource(ytStream.stream, { inputType: ytStream.type, inlineVolume: true });
       } catch(streamErr) {
-        console.error('play-dl stream error:', streamErr.message);
+        console.error('play-dl stream error:', streamErr.message, '| URL:', song.url);
         q.songs.shift();
         return play(guild, textChannel);
       }

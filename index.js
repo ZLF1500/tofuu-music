@@ -737,6 +737,7 @@ async function play(guild, textChannel) {
         '--quiet',
         '--no-warnings',
         '--extractor-args','youtube:player_client=android_music',
+        '--cookies',require('path').join(__dirname,'cookies.txt'),
         song.url
       ]);
       proc.stderr.on('data',d=>{ const m=d.toString(); if(!m.includes('Broken pipe')&&!m.includes('Invalid argument')) console.error('yt-dlp:',m.trim()); });

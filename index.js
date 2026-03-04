@@ -4,6 +4,7 @@ const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuild
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
 const playdl = require('play-dl');
 const ytdl = require('@distube/ytdl-core');
+let ytdlAgent = null;
 const Genius = require('genius-lyrics');
 const fs = require('fs');
 require('dotenv').config();
@@ -734,19 +735,15 @@ async function play(guild, textChannel) {
         let streamUrl = song.url;
         const vidId = streamUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
         if (vidId) streamUrl = `https://www.youtube.com/watch?v=${vidId}`;
-        const cookieData = fs.readFileSync(path.join(__dirname, 'cookies.json'), 'utf8');
-        const cookieArr = JSON.parse(cookieData);
-        const cookieHeader = cookieArr.map(c => `${c.name}=${c.value}`).join('; ');
+        if (!ytdlAgent) {
+          const cookieArr = JSON.parse(fs.readFileSync(path.join(__dirname, 'cookies.json'), 'utf8'));
+          ytdlAgent = ytdl.createAgent(cookieArr);
+        }
         const ytStream = ytdl(streamUrl, {
           filter: 'audioonly',
           quality: 'highestaudio',
           highWaterMark: 1 << 25,
-          requestOptions: {
-            headers: {
-              cookie: cookieHeader,
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            }
-          }
+          agent: ytdlAgent,
         });
         resource = createAudioResource(ytStream, { inputType: 'arbitrary', inlineVolume: true });
       } catch(streamErr) {

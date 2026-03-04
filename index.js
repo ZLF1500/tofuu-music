@@ -729,11 +729,14 @@ async function play(guild, textChannel) {
       const scStream = await playdl.stream(song.url, { quality:2 });
       resource = createAudioResource(scStream.stream, { inputType:scStream.type, inlineVolume:true });
     } else {
-      const proc = spawn('python',['-m','yt_dlp','-f','bestaudio/best','-o','-','--quiet',
-        '--cookies',path.join(__dirname,'cookies.txt'),song.url]);
-      proc.stderr.on('data',d=>{ const m=d.toString(); if(!m.includes('Broken pipe')&&!m.includes('Invalid argument')) console.error('yt-dlp:',m.trim()); });
-      q.currentProcess=proc;
-      resource = createAudioResource(proc.stdout, { inputType:'arbitrary', inlineVolume:true });
+      try {
+        const ytStream = await playdl.stream(song.url, { quality: 2 });
+        resource = createAudioResource(ytStream.stream, { inputType: ytStream.type, inlineVolume: true });
+      } catch(streamErr) {
+        console.error('play-dl stream error:', streamErr.message);
+        q.songs.shift();
+        return play(guild, textChannel);
+      }
     }
     resource.volume?.setVolume(((q.volume||100)/100)*2);
     q.resource=resource;

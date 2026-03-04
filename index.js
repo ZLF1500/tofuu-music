@@ -731,26 +731,17 @@ async function play(guild, textChannel) {
       const scStream = await playdl.stream(song.url, { quality:2 });
       resource = createAudioResource(scStream.stream, { inputType:scStream.type, inlineVolume:true });
     } else {
-      try {
-        let streamUrl = song.url;
-        const vidId = streamUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-        if (vidId) streamUrl = `https://www.youtube.com/watch?v=${vidId}`;
-        if (!ytdlAgent) {
-          const cookieArr = JSON.parse(fs.readFileSync(path.join(__dirname, 'cookies.json'), 'utf8'));
-          ytdlAgent = ytdl.createAgent(cookieArr);
-        }
-        const ytStream = ytdl(streamUrl, {
-          filter: 'audioonly',
-          quality: 'highestaudio',
-          highWaterMark: 1 << 25,
-          agent: ytdlAgent,
-        });
-        resource = createAudioResource(ytStream, { inputType: 'arbitrary', inlineVolume: true });
-      } catch(streamErr) {
-        console.error('ytdl stream error:', streamErr.message, '| URL:', song.url);
-        q.songs.shift();
-        return play(guild, textChannel);
-      }
+      const proc = spawn('python',['-m','yt_dlp',
+        '-f','bestaudio/best',
+        '-o','-',
+        '--quiet',
+        '--no-warnings',
+        '--extractor-args','youtube:player_client=android_music',
+        song.url
+      ]);
+      proc.stderr.on('data',d=>{ const m=d.toString(); if(!m.includes('Broken pipe')&&!m.includes('Invalid argument')) console.error('yt-dlp:',m.trim()); });
+      q.currentProcess=proc;
+      resource = createAudioResource(proc.stdout, { inputType:'arbitrary', inlineVolume:true });
     }
     resource.volume?.setVolume(((q.volume||100)/100)*2);
     q.resource=resource;

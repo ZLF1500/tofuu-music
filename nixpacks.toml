@@ -4,11 +4,7 @@ nixPkgs = ["nodejs_20", "python311", "python311Packages.pip", "ffmpeg"]
 [phases.install]
 cmds = [
   "npm ci",
-  "npm install -g jsdom",
-  "pip install -U yt-dlp --break-system-packages",
-  "ln -sf $(which node) /usr/local/bin/node || true",
-  "ln -sf $(which node) /usr/bin/node || true",
-  "node -e \"require('jsdom')\" && echo 'jsdom OK' || echo 'jsdom MISSING'"
+  "pip install -U yt-dlp bgutil-ytdlp-pot-provider --break-system-packages"
 ]
 
 [start]

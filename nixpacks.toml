@@ -4,6 +4,7 @@ nixPkgs = ["nodejs_20", "python311", "python311Packages.pip", "ffmpeg"]
 [phases.install]
 cmds = [
   "npm ci",
+  "npm install -g jsdom",
   "pip install -U yt-dlp --break-system-packages"
 ]
 

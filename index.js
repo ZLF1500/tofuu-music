@@ -736,7 +736,6 @@ async function play(guild, textChannel) {
         '-o','-',
         '--quiet',
         '--no-warnings',
-        '--extractor-args','youtube:player_client=android_music',
         '--cookies',require('path').join(__dirname,'cookies.txt'),
         song.url
       ]);

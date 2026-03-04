@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
 const playdl = require('play-dl');
+const ytdl = require('@distube/ytdl-core');
 const Genius = require('genius-lyrics');
 const fs = require('fs');
 require('dotenv').config();
@@ -730,15 +731,17 @@ async function play(guild, textChannel) {
       resource = createAudioResource(scStream.stream, { inputType:scStream.type, inlineVolume:true });
     } else {
       try {
-        // Normalize URL to standard YouTube watch URL
         let streamUrl = song.url;
         const vidId = streamUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
         if (vidId) streamUrl = `https://www.youtube.com/watch?v=${vidId}`;
-        console.log('Streaming URL:', streamUrl);
-        const ytStream = await playdl.stream(streamUrl, { quality: 2 });
-        resource = createAudioResource(ytStream.stream, { inputType: ytStream.type, inlineVolume: true });
+        const ytStream = ytdl(streamUrl, {
+          filter: 'audioonly',
+          quality: 'highestaudio',
+          highWaterMark: 1 << 25,
+        });
+        resource = createAudioResource(ytStream, { inputType: 'arbitrary', inlineVolume: true });
       } catch(streamErr) {
-        console.error('play-dl stream error:', streamErr.message, '| URL:', song.url);
+        console.error('ytdl stream error:', streamErr.message, '| URL:', song.url);
         q.songs.shift();
         return play(guild, textChannel);
       }
